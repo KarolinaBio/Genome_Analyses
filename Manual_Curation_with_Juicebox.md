@@ -1,6 +1,4 @@
-# Genome_Analyses
-
-Manual curation with Juicebox (JBAT) for the Roary Cluster
+# Manual curation with Juicebox (JBAT) for the Roary Cluster
 
 
 ```
