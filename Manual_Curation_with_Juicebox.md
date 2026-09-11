@@ -19,8 +19,6 @@ java -jar -Xmx64G /home/data/group/user/hic_tools/juicer/scripts/juicer_tools.1.
 
 ```
 
-You can replace `<(cat out_JBAT.log  | grep PRE_C_SIZE | awk '{print $2" "$3}'))` with `<(echo "assembly 73472353"))` found in the `out_JBAT.log` file.
-
 Note: you need to download a different version of juicer tools into your scripts folder otherwise you'll get a java error
 
 `wget https://hicfiles.tc4ga.com/public/juicer/juicer_tools.1.9.9_jcuda.0.8.jar`
