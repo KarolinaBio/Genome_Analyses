@@ -1,4 +1,4 @@
-Standard Scaffolding with YaHS for the Roary Cluster
+# Standard Scaffolding with YaHS for the Roary Cluster
 
 ```
 #!/bin/bash
