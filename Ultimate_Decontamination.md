@@ -1,3 +1,393 @@
+# Step 1 
+```
+#!/bin/bash
+#SBATCH --job-name=blast
+#SBATCH --output=output_blast.log
+#SBATCH --account=acc_jfierst
+#SBATCH --partition=highmem1-sapphirerapids
+#SBATCH --qos=highmem1
+#SBATCH --mem=384G
+#SBATCH --cpus-per-task=32
+
+# Load BLAST+ and set database
+module load blast-plus
+export BLASTDB='/home/data/jfierst/blastPractice/nt_db/'
+
+# FASTA file to process
+FASTA_FILE="JU3778_p_purged_new.fa"
+
+# Check that the file exists
+if [ ! -f "$FASTA_FILE" ]; then
+    echo "FASTA file not found: $FASTA_FILE"
+    exit 1
+fi
+
+# Output filename
+OUTPUT_FILE="${FASTA_FILE%.fa}.out"
+
+# Run BLAST
+echo "Starting BLAST for file: $FASTA_FILE"
+
+blastn \
+    -query "$FASTA_FILE" \
+    -db nt \
+    -culling_limit 5 \
+    -evalue 1e-25 \
+    -num_threads 32 \
+    -outfmt "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore stitle" \
+    -out "$OUTPUT_FILE"
+
+echo "BLAST completed. Output saved to: $OUTPUT_FILE"
+```
+
+# Step 2
+```
+#!/bin/bash
+#SBATCH --job-name=trim_contaminants
+#SBATCH --output=trim_contaminants.log
+#SBATCH --account=acc_jfierst
+#SBATCH --partition=default-part
+#SBATCH --qos=standard
+#SBATCH --mem=64G
+#SBATCH --cpus-per-task=1
+
+
+# ------------------------------------------------------------
+# Step 2
+#
+# Conservative classification of BLAST hits.
+#
+# A BLAST hit is classified as contaminant only when:
+#
+#   1. Subject genus is in contaminants.txt
+#   2. Percent identity >= MIN_PIDENT
+#   3. Alignment length >= MIN_LENGTH
+#   4. E-value <= MAX_EVALUE
+#
+# A PTG is placed in remove.txt only if it has at least one
+# qualifying contaminant hit.
+#
+# IMPORTANT:
+#   remove.txt identifies PTGs containing contaminant regions.
+#   Step 3 uses the individual BLAST qstart/qend coordinates
+#   to remove only those regions.
+#
+# Everything that is not confidently classified as contaminant
+# goes into check.txt rather than remove.txt.
+# ------------------------------------------------------------
+
+SP="JU4645"
+TYPE="p"
+
+wd="/home/data/jfierst/Karolina/${SP}"
+file="${wd}/${SP}.${TYPE}.fa.out"
+
+keep="${wd}/${SP}_${TYPE}_keep.txt"
+remove="${wd}/${SP}_${TYPE}_remove.txt"
+check="${wd}/${SP}_${TYPE}_check.txt"
+
+# Audit file containing the actual contaminant BLAST hits
+contaminant_hits="${wd}/${SP}_${TYPE}_contaminant_hits.txt"
+
+# ------------------------------------------------------------
+# Conservative thresholds
+# ------------------------------------------------------------
+
+MIN_PIDENT=95
+MIN_LENGTH=100
+MAX_EVALUE="1e-25"
+
+# ------------------------------------------------------------
+# Check input
+# ------------------------------------------------------------
+
+if [[ ! -s "$file" ]]; then
+    echo "ERROR: Input BLAST file is missing or empty:"
+    echo "$file" >&2
+    exit 1
+fi
+
+# ------------------------------------------------------------
+# Empty output files
+# ------------------------------------------------------------
+
+: > "$keep"
+: > "$remove"
+: > "$check"
+: > "$contaminant_hits"
+
+# ------------------------------------------------------------
+# Classification
+# ------------------------------------------------------------
+
+awk -F '\t' \
+    -v keep="$keep" \
+    -v remove="$remove" \
+    -v check="$check" \
+    -v contaminant_hits="$contaminant_hits" \
+    -v min_pident="$MIN_PIDENT" \
+    -v min_length="$MIN_LENGTH" \
+    -v max_evalue="$MAX_EVALUE" '
+
+BEGIN {
+
+    # --------------------------------------------------------
+    # Read nematode genera
+    # --------------------------------------------------------
+
+    while ((getline line < "nematodes.txt") > 0) {
+
+        gsub(/\r/, "", line)
+        gsub(/^[[:space:]]+|[[:space:]]+$/, "", line)
+
+        if (line != "")
+            nem[line] = 1
+    }
+
+    close("nematodes.txt")
+
+
+    # --------------------------------------------------------
+    # Read contaminant genera
+    # --------------------------------------------------------
+
+    while ((getline line < "contaminants.txt") > 0) {
+
+        gsub(/\r/, "", line)
+        gsub(/^[[:space:]]+|[[:space:]]+$/, "", line)
+
+        if (line != "")
+            bac[line] = 1
+    }
+
+    close("contaminants.txt")
+}
+
+
+{
+
+    # --------------------------------------------------------
+    # BLAST columns
+    #
+    # $1  qseqid
+    # $2  sseqid
+    # $3  pident
+    # $4  length
+    # $5  mismatch
+    # $6  gapopen
+    # $7  qstart
+    # $8  qend
+    # $9  sstart
+    # $10 send
+    # $11 evalue
+    # $12 bitscore
+    # $13 stitle
+    # --------------------------------------------------------
+
+    ptg = $1
+    pident = $3 + 0
+    aln_length = $4 + 0
+    evalue = $11 + 0
+    description = $13
+
+
+    # --------------------------------------------------------
+    # Extract genus from subject description.
+    #
+    # Expected format:
+    #
+    # accession Genus species ...
+    #
+    # Example:
+    #
+    # CP115866.1 Caenorhabditis nigoni ...
+    #
+    # fields[2] = Caenorhabditis
+    # --------------------------------------------------------
+
+    split(description, fields, /[[:space:]]+/)
+
+    genus = fields[2]
+
+
+    # --------------------------------------------------------
+    # Create unique key for this particular BLAST hit.
+    #
+    # Coordinates are included so that separate hits are
+    # retained in the audit file.
+    # --------------------------------------------------------
+
+    hitkey = ptg "\t" \
+             $2 "\t" \
+             $7 "\t" \
+             $8 "\t" \
+             $11
+
+
+    # --------------------------------------------------------
+    # Strong contaminant hit
+    # --------------------------------------------------------
+
+    if ((genus in bac) &&
+        pident >= min_pident &&
+        aln_length >= min_length &&
+        evalue <= max_evalue) {
+
+        # ----------------------------------------------------
+        # Record PTG as containing contaminant sequence.
+        # ----------------------------------------------------
+
+        contaminant_ptg[ptg] = 1
+
+        # ----------------------------------------------------
+        # Record individual contaminant hit.
+        #
+        # This file is useful for auditing exactly what Step 3
+        # will remove.
+        # ----------------------------------------------------
+
+        if (!(hitkey in seen_contaminant)) {
+
+            print ptg "\t" \
+                  $2 "\t" \
+                  pident "\t" \
+                  aln_length "\t" \
+                  $7 "\t" \
+                  $8 "\t" \
+                  evalue "\t" \
+                  $12 "\t" \
+                  genus "\t" \
+                  description \
+                  >> contaminant_hits
+
+            seen_contaminant[hitkey] = 1
+        }
+
+        next
+    }
+
+
+    # --------------------------------------------------------
+    # Nematode hit
+    #
+    # A strong nematode hit is retained in keep.txt.
+    #
+    # We do NOT use this to cancel a contaminant hit. A PTG can
+    # legitimately contain both nematode and contaminant
+    # sequence. Step 3 will use coordinates to retain the
+    # nematode portion.
+    # --------------------------------------------------------
+
+    if (genus in nem) {
+
+        key = ptg "\t" description
+
+        if (!(key in seen_keep)) {
+
+            print ptg "\t" description >> keep
+
+            seen_keep[key] = 1
+        }
+
+        next
+    }
+
+
+    # --------------------------------------------------------
+    # Everything else goes to check.txt.
+    #
+    # This includes:
+    #
+    #   - weak contaminant hits
+    #   - short contaminant hits
+    #   - lower identity contaminant hits
+    #   - unknown genera
+    #   - poorly formatted descriptions
+    # --------------------------------------------------------
+
+    key = ptg "\t" description
+
+    if (!(key in seen_check)) {
+
+        print ptg "\t" description >> check
+
+        seen_check[key] = 1
+    }
+}
+
+
+END {
+
+    # --------------------------------------------------------
+    # Write remove.txt only after all BLAST records have been
+    # examined.
+    #
+    # This guarantees that a PTG is listed once.
+    # --------------------------------------------------------
+
+    for (ptg in contaminant_ptg) {
+
+        print ptg "\tstrong contaminant BLAST hit" >> remove
+    }
+}
+
+' "$file"
+
+
+# ------------------------------------------------------------
+# Sort output files for reproducibility
+# ------------------------------------------------------------
+
+sort -u "$keep" > "${keep}.tmp"
+mv "${keep}.tmp" "$keep"
+
+sort -u "$remove" > "${remove}.tmp"
+mv "${remove}.tmp" "$remove"
+
+sort -u "$check" > "${check}.tmp"
+mv "${check}.tmp" "$check"
+
+
+# ------------------------------------------------------------
+# Summary
+# ------------------------------------------------------------
+
+N_KEEP=$(cut -f1 "$keep" | sort -u | wc -l)
+N_REMOVE=$(cut -f1 "$remove" | sort -u | wc -l)
+N_CHECK=$(cut -f1 "$check" | sort -u | wc -l)
+N_CONTAMINANT_HITS=$(wc -l < "$contaminant_hits")
+
+echo
+echo "=============================================="
+echo "Conservative BLAST classification complete"
+echo "=============================================="
+echo
+echo "Input:"
+echo "  $file"
+echo
+echo "Thresholds:"
+echo "  Minimum identity : ${MIN_PIDENT}%"
+echo "  Minimum length   : ${MIN_LENGTH} bp"
+echo "  Maximum e-value  : ${MAX_EVALUE}"
+echo
+echo "PTGs:"
+echo "  Keep              : $N_KEEP"
+echo "  Contaminant       : $N_REMOVE"
+echo "  Check             : $N_CHECK"
+echo
+echo "Strong contaminant BLAST hits:"
+echo "  $N_CONTAMINANT_HITS"
+echo
+echo "Output:"
+echo "  Keep              : $keep"
+echo "  Remove            : $remove"
+echo "  Check             : $check"
+echo "  Contaminant hits  : $contaminant_hits"
+echo
+```
+
+# Step 3
+
 ```
 #!/bin/bash
 #SBATCH --job-name=trim_contaminants
