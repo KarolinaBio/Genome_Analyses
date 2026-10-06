@@ -20,7 +20,7 @@ Select the kernel: Cool Tools Use This One
 
 Make sure you delete your old ~/.local/matplotlib files because they will interfere with your new installation in ~/.conda/
 
-Inside the kernel
+# Inside the kernel
 
 ```
 import numpy as np
