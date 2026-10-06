@@ -16,6 +16,7 @@ conda activate hic_analysis
 samtools faidx yahs.out_scaffolds_final.fa
 cut -f1,2 yahs.out_scaffolds_final.fa.fai > yahs.out_scaffolds_final.chrom.sizes
 
-(java -jar -Xmx32G /home/data/group/user/hic_tools/juicer/scripts/common/juicer_tools.jar pre alignments_sorted.txt out.hic.part yahs.out_scaffolds_final.chrom.sizes) && (mv out.hic.part out.hic)
+(java -Xmx32G -jar /home/data/group/user/hic_tools/juicer/scripts/common/juicer_tools.jar pre alignments_sorted.txt out.hic.part yahs.out_scaffolds_final.chrom.sizes) && (mv out.hic.part out.hic)
 ```
 
+Note: a better version of `juicer_tools` is `juicer_tools.1.9.9_jcuda.0.8.jar` therefore you should change the above script to `/home/data/group/user/hic_tools/juicer/scripts/juicer_tools.1.9.9_jcuda.0.8.jar`
