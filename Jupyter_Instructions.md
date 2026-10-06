@@ -20,7 +20,7 @@ Select the kernel: Cool Tools Use This One
 
 Make sure you delete your old ~/.local/matplotlib files because they will interfere with your new installation in ~/.conda/
 
-# Inside the kernel
+Inside the kernel
 
 ```
 import numpy as np
@@ -44,7 +44,7 @@ from cooltools.lib.numutils import adaptive_coarsegrain, interp_nan
 from cooltools.insulation import calculate_insulation_score, find_boundaries
 ```
 
-# Load the cool format files into the kernel
+Load the cool format files into the kernel
 
 ```
 #For reference, these re the species names, don't paste these into the kernel
@@ -67,7 +67,7 @@ JU4110_ins = calculate_insulation_score(JU4110_clr, windows, verbose=True)
 
 ```
 
-# Once the above step is done, continue in the kernel
+Once the above step is done, continue in the kernel
 
 ```
 # home-brew wrapper around smoothing and filling of nan bins, see cooltools for details
@@ -95,7 +95,7 @@ f, axs = plt.subplots(
 )
 ```
 
-# Next steps
+Next steps, still in the kernel
 
 ```
 JU4110_norm = LogNorm(vmin=0.00015,vmax=0.01)
