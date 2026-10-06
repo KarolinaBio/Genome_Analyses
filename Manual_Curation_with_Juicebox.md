@@ -24,6 +24,7 @@ Note: you need to download a different version of juicer tools into your scripts
 
 `wget https://hicfiles.tc4ga.com/public/juicer/juicer_tools.1.9.9_jcuda.0.8.jar`
 
+Also, instead of `<(cat out_JBAT.log  | grep PRE_C_SIZE | awk '{print $2" "$3}')` try simply doing `yahs.out_scaffolds_final.chrom.sizes` because then you're actually able to see the chromosomes instead of just `assembly` which really makes no sense
 
 # Converting to Cool format for insulation plots
 
