@@ -10,7 +10,7 @@ Install the environment:
 ```
 #!/bin/bash
 #SBATCH --job-name=hicConvert
-#SBATCH --account=acc_group
+#SBATCH --account=acc_jfierst
 #SBATCH --qos=highmem1
 #SBATCH --partition=highmem1-sapphirerapids
 #SBATCH --ntasks=1
@@ -20,12 +20,46 @@ Install the environment:
 
 conda activate hic_explorer
 
-# hic to cool
+# Step 1 - hic to cool
 #hicConvertFormat -m out_JBAT.hic --inputFormat hic --outputFormat cool --resolutions 5000 -o JUXXXX.cool #tacks on the resolution
 
-# remove normalization
-hicConvertFormat -m JUXXXX_5000.cool --inputFormat cool --outputFormat cool --load_raw_values -o JUXXXX_raw.cool
+# Step 2 - remove normalization
+# See Jupyter instructions below. Then, come back here for step 3
 
-# matrix balancing
+# Step 3 - matrix balancing
 cooler balance JUXXXX_raw.cool --max-iters 500 --mad-max 5 --ignore-diags 2 #no output file
 ```
+
+Jupyter Instruction - Inside the kernel, once all imports have been made
+
+```
+input_file = "/home/data/jfierst/Karolina/JU4110/YaHS/JU4110_test_5000.cool"
+output_file = "/home/data/jfierst/Karolina/JU4110/YaHS/JU4110_test_5000_raw_fixed.cool"
+
+clr = cooler.Cooler(input_file)
+
+# Keep only the structural bin columns
+bins = clr.bins()[:][["chrom", "start", "end"]].copy()
+
+# Keep the raw contact counts
+pixels = clr.pixels()[:][["bin1_id", "bin2_id", "count"]].copy()
+
+print("Bins:", len(bins))
+print("Pixels:", len(pixels))
+print("Total contacts:", pixels["count"].sum())
+
+cooler.create_cooler(
+    output_file,
+    bins=bins,
+    pixels=pixels,
+    ordered=True,
+    symmetric_upper=True,
+    metadata={
+        "genome-assembly": "JU4110_yahs.out_scaffolds_final.chrom.sizes",
+        "generated-by": "cooler 0.10.2"
+    }
+)
+
+print("Created:", output_file)
+```
+
