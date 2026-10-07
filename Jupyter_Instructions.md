@@ -1,5 +1,5 @@
 # Jupyter Instructions for Insulation Plots
-From https://github.com/ercanlab/2024_Aharonoff_et_al/blob/main/scripts/Hi-C/Figure_2.ipynb
+Edited from https://github.com/ercanlab/2024_Aharonoff_et_al/blob/main/scripts/Hi-C/Figure_2.ipynb
 
 First create a conda environment for Jupyter
 
@@ -99,42 +99,81 @@ f, axs = plt.subplots(
 Next steps, still in the kernel
 
 ```
-#Insulation parameter
-JU4110_norm = LogNorm(vmin=0.00015,vmax=0.01)
-
-ins_min,ins_max = [-1.0,1.0]
+# Feel free to change this region to whatever you want
 region = 'X:21,750,000-23,250,000'
 start, end = 21_750_000, 23_250_000
-extents = (start, end, end, start)
 
+# Get the matrix for this region
+clr_region = cgi_region(JU4110_clr, region)
 
-ax = axs[6]
-clr_region = cgi_region(JU4110_clr,region)
+# Get insulation values for the same region
+ins_region = bioframe.select(JU4110_ins, region)
+
+# Create figure
+fig, ax = plt.subplots(figsize=(8, 8))
+
+# Hi-C matrix
 im = ax.matshow(
     clr_region,
     cmap='fall',
-    norm=JU4110_norm,
-    extent=extents
+    norm=LogNorm(vmin=0.00015, vmax=0.01),
+    extent=(start, end, end, start),
+    aspect='equal'
 )
 
-
+# Colorbar
 divider = make_axes_locatable(ax)
-cax = divider.append_axes("right", size="5%", pad=0.1) # color axis for color bar
+cax = divider.append_axes("right", size="5%", pad=0.1)
+
 plt.colorbar(im, cax=cax)
 
-#Insulation
-ax_ins = divider.append_axes("bottom", size="30%", pad=0.2, sharex=ax) # axis for insulation score
-ins_region = bioframe.select(JU4110_ins, region)
-ax_ins.plot(ins_region[['start', 'end']].mean(axis=1), 
-            ins_region['log2_insulation_score_150000']) # where you input the window size you used
+# Insulation plot
+ax_ins = divider.append_axes(
+    "bottom",
+    size="30%",
+    pad=0.3,
+    sharex=ax
+)
 
-# force min/max values
-ax_ins.set_ylim([ins_min,ins_max])
+x = ins_region[['start', 'end']].mean(axis=1)
+y = ins_region['log2_insulation_score_150000']
 
-#Formatting
-ax.xaxis.set_visible(False) # hide axis labels
-ax_ins.xaxis.set_visible(True) # hide axis labels
-format_ticks(ax,x=True,y=True,rotate=True) # format y-axis for matrix
-plt.xticks(rotation=45)
+ax_ins.plot(
+    x,
+    y,
+    color='black',
+    linewidth=1
+)
+
+# Insulation limits
+ax_ins.set_ylim(-1, 1)
+
+# Explicit x limits
+ax_ins.set_xlim(start, end)
+
+# Reference line
+ax_ins.axhline(
+    0,
+    color='gray',
+    linewidth=0.5,
+    linestyle='--'
+)
+# Formatting
+ax.xaxis.set_visible(False)
+
+ax_ins.xaxis.set_visible(True)
+
+ax_ins.set_xlabel("Chromosome X position (Mb)")
+ax_ins.set_ylabel("Insulation")
+
+# Convert x-axis labels from bp to Mb
+ticks = ax_ins.get_xticks()
+ax_ins.set_xticks(ticks)
+ax_ins.set_xticklabels(
+    [f"{t/1e6:.2f}" for t in ticks],
+    rotation=45
+)
+plt.show()
+
 ```
 
