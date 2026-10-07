@@ -1,4 +1,5 @@
 # Jupyter Instructions for Insulation Plots
+From https://github.com/ercanlab/2024_Aharonoff_et_al/blob/main/scripts/Hi-C/Figure_2.ipynb
 
 First create a conda environment for Jupyter
 
@@ -57,7 +58,7 @@ Load the cool format files into the kernel
 #JU3779 = "C. sp. 58"
 
 resolution = "5000" #bin size
-JU4110_clr = cooler.Cooler(f"/home/data/jfierst/Karolina/JU4110/YaHS/JU4110_5000_new_raw.cool")
+JU4110_clr = cooler.Cooler(f"/home/data/jfierst/Karolina/JU4110/YaHS/JU4110_5000_new_raw_fixed.cool")
 
 # resolution of your cool file is step size, this is bin size
 windows = [50000,100000,150000,200000]
