@@ -145,7 +145,7 @@ ax_ins.plot(
     linewidth=1
 )
 
-# Insulation limits
+# Insulation limits - you can set these to your full region for example -2.2,1.8 don't have to constrain it to just -1,1
 ax_ins.set_ylim(-1, 1)
 
 # Explicit x limits
