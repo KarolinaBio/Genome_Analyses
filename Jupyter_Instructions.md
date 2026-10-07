@@ -99,15 +99,15 @@ f, axs = plt.subplots(
 Next steps, still in the kernel
 
 ```
+#Insulation parameter
 JU4110_norm = LogNorm(vmin=0.00015,vmax=0.01)
 
-#Insulation parameter
 ins_min,ins_max = [-1.0,1.0]
-region = 'X:6,500,000-8,000,000'
-start, end =6_500_000, 8_000_000
+region = 'X:21,750,000-23,250,000'
+start, end = 21_750_000, 23_250_000
 extents = (start, end, end, start)
 
-#Encountered an error, trying to remake the cool files
+
 ax = axs[6]
 clr_region = cgi_region(JU4110_clr,region)
 im = ax.matshow(
@@ -124,7 +124,7 @@ plt.colorbar(im, cax=cax)
 
 #Insulation
 ax_ins = divider.append_axes("bottom", size="30%", pad=0.2, sharex=ax) # axis for insulation score
-ins_region = bioframe.select(oonins, region)
+ins_region = bioframe.select(JU4110_ins, region)
 ax_ins.plot(ins_region[['start', 'end']].mean(axis=1), 
             ins_region['log2_insulation_score_150000']) # where you input the window size you used
 
