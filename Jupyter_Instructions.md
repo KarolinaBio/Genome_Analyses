@@ -88,12 +88,6 @@ def format_ticks(ax, x=True, y=True, rotate=True):
         ax.xaxis.tick_bottom()
     if rotate:
         ax.tick_params(axis='x',rotation=45)
-
-f, axs = plt.subplots(
-    figsize=(25, 10),
-    ncols=7,
-    nrows=1
-)
 ```
 
 Next steps, still in the kernel
@@ -120,7 +114,25 @@ im = ax.matshow(
     extent=(start, end, end, start),
     aspect='equal'
 )
+# Show the Hi-C map x- and y-axis ticks
+ax.xaxis.set_visible(True)
+ax.yaxis.set_visible(True)
 
+# Label the axes
+ax.set_xlabel("Chr X position (Mb)")
+ax.set_ylabel("Chr X position (Mb)")
+
+# Convert Hi-C map tick labels from bp to Mb
+xticks = ax.get_xticks()
+ax.set_xticks(xticks)
+ax.set_xticklabels(
+    [f"{t/1e6:.2f}" for t in xticks]
+)
+yticks = ax.get_yticks()
+ax.set_yticks(yticks)
+ax.set_yticklabels(
+    [f"{t/1e6:.2f}" for t in yticks]
+)
 # Colorbar
 divider = make_axes_locatable(ax)
 cax = divider.append_axes("right", size="5%", pad=0.1)
