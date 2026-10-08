@@ -48,23 +48,23 @@ from cooltools.insulation import calculate_insulation_score, find_boundaries
 Load the cool format files into the kernel
 
 ```
-#For reference, these re the species names, don't paste these into the kernel
-#JU4110 = "C. sp. 61"
-#JU4112 = "C. sp. 62"
-#JU4113 = "C. sp. 63"
-#JU4118 = "C. sp. 65"
-#JU4121 = "C. sp. 66"
-#JU3778 = "C. sp. 59"
-#JU3779 = "C. sp. 58"
-
-resolution = "5000" #bin size
-JU4110_clr = cooler.Cooler(f"/home/data/jfierst/Karolina/JU4110/YaHS/JU4110_5000_new_raw_fixed.cool")
+#bin size
+resolution = "5000" 
+JU4110_clr = cooler.Cooler(f"/home/data/jfierst/Karolina/JU4110/YaHS/JU4110_test_5000_raw_fixed.cool")
+JU4112_clr = cooler.Cooler(f"/home/data/jfierst/Karolina/JU4112/YaHS/JU4112_test_new_5000_raw.cool")
+JU4113_clr = cooler.Cooler(f"/home/data/jfierst/Karolina/JU4113/YaHS/JU4113_test_new_5000_raw.cool")
+JU4118_clr = cooler.Cooler(f"/home/data/jfierst/Karolina/JU4118/YaHS/JU4118_test_new_5000_raw.cool")
+JU4121_clr = cooler.Cooler(f"/home/data/jfierst/Karolina/JU4121/YaHS/JU4121_test_new_5000_raw.cool")
 
 # resolution of your cool file is step size, this is bin size
 windows = [50000,100000,150000,200000]
 
 #This part takes a while
 JU4110_ins = calculate_insulation_score(JU4110_clr, windows, verbose=True)
+JU4112_ins = calculate_insulation_score(JU4112_clr, windows, verbose=True)
+JU4113_ins = calculate_insulation_score(JU4113_clr, windows, verbose=True)
+JU4118_ins = calculate_insulation_score(JU4118_clr, windows, verbose=True)
+JU4121_ins = calculate_insulation_score(JU4121_clr, windows, verbose=True)
 
 ```
 
