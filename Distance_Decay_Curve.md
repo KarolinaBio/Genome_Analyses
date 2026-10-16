@@ -26,7 +26,7 @@ from cooltools.lib.numutils import adaptive_coarsegrain, interp_nan
 from cooltools.insulation import calculate_insulation_score, find_boundaries
 ```
 
-Next
+Go to the terminal and do this: ` awk 'BEGIN {OFS="\t"; print "chrom", "start", "end", "name"} {print $1, 0, $2, $1":0-"$2}' yahs.out_scaffolds_final.chrom.sizes > JU4118_cool.chrom.sizes ` Then, come back to Jupyter
 
 ```
 resolution = "5000" 
@@ -36,7 +36,7 @@ JU4118_clr = cooler.Cooler(f"/home/data/jfierst/Karolina/JU4118/YaHS/JU4118_test
 
 # Load chrom.sizes files
 
-chr=bioframe.read_table('/home/data/jfierst/Karolina/JU4118/YaHS/yahs.out_scaffolds_final.chrom.sizes',schema='bed3')
+chr=bioframe.read_table('/home/data/jfierst/Karolina/JU4118/YaHS/JU4118_cool.chrom.sizes',schema='bed3')
 chr=bioframe.make_viewframe(chr)
 
 print(chr)
