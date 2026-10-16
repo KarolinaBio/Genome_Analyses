@@ -29,16 +29,15 @@ from cooltools.insulation import calculate_insulation_score, find_boundaries
 Next
 
 ```
-file="JU4118"
-
-bin = str(5000) # resolution of cool file to load in base pairs
+resolution = "5000" 
 
 # load cool file
-ppaclr = cooler.Cooler("".join(["/home/aa7013/hic-to-cool/",file,"/",file,"_30_",bin,"_raw.cool"]))
-Load chrom.sizes files
+JU4118_clr = cooler.Cooler(f"/home/data/jfierst/Karolina/JU4118/YaHS/JU4118_test_new_5000_raw.cool"
 
-chr=bioframe.read_table('/home/aa7013/hic-to-cool/chrom-sizes_files/pristionchus_pacificus.PRJNA12644.WBPS16.genomic.RS.chrom.sizes',schema='bed3')
-chr=bioframe.parse_regions(chr)
+# Load chrom.sizes files
+
+chr=bioframe.read_table('/home/data/jfierst/Karolina/JU4118/YaHS/yahs.out_scaffolds_final.chrom.sizes',schema='bed3')
+chr=bioframe.make_viewframe(chr)
 
 print(chr)
 ```
