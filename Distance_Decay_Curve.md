@@ -32,12 +32,11 @@ Go to the terminal and do this: ` awk 'BEGIN {OFS="\t"; print "chrom", "start", 
 resolution = "5000" 
 
 # load cool file
-JU4118_clr = cooler.Cooler(f"/home/data/jfierst/Karolina/JU4118/YaHS/JU4118_test_new_5000_raw.cool"
+JU4118_clr = cooler.Cooler(f"/home/data/jfierst/Karolina/JU4118/YaHS/JU4118_test_new_5000_raw.cool")
 
 # Load chrom.sizes files
+df = pd.read_csv('/home/data/jfierst/Karolina/JU4118/YaHS/JU4118_cool.chrom.sizes', sep="\t")
+view = bioframe.make_viewframe(df)
+print(view)
 
-chr=bioframe.read_table('/home/data/jfierst/Karolina/JU4118/YaHS/JU4118_cool.chrom.sizes',schema='bed3')
-chr=bioframe.make_viewframe(chr)
-
-print(chr)
 ```
