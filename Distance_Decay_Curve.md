@@ -36,7 +36,29 @@ JU4118_clr = cooler.Cooler(f"/home/data/jfierst/Karolina/JU4118/YaHS/JU4118_test
 
 # Load chrom.sizes files
 df = pd.read_csv('/home/data/jfierst/Karolina/JU4118/YaHS/JU4118_cool.chrom.sizes', sep="\t")
-view = bioframe.make_viewframe(df)
+view = bioframe.make_viewframe(df) # view = bioframe.parse_regions(df)
 print(view)
 
 ```
+Define functions to measure P(s) and its derivative (taken from cooltools)
+
+```
+# a home-made wrapper around scaling distance decay curve and its derivative. See cooltools for more details
+# returns 2 outputs, P(s) and its derivative
+
+def scaling_agg(input_clr,input_regions):
+    cvd = cooltools.expected.diagsum(
+        clr=input_clr,
+        regions=input_regions,
+        transforms={'balanced': lambda p: p['count']*p['weight1']*p['weight2']}
+    )
+    lb_cvd, lb_slopes, lb_distbins = cooltools.expected.logbin_expected(cvd) #bins_per_order_magnitude=20 to get more dots
+    lb_cvd_agg, lb_slopes_agg = cooltools.expected.combine_binned_expected(
+        lb_cvd,
+        binned_exp_slope=lb_slopes
+    )
+    lb_cvd_agg['s_bp'] = lb_cvd_agg['diag.avg'] * input_clr.binsize
+    lb_slopes_agg['s_bp'] = lb_slopes_agg['diag.avg'] * input_clr.binsize
+    return(lb_cvd_agg,lb_slopes_agg)
+```
+Measure P(s) and its derivative
