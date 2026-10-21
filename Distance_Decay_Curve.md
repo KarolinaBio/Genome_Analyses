@@ -271,4 +271,9 @@ plt.axvline(x = loop_size_V, color = '#444444', ymin = 0.1, ymax = 0.15, linewid
 plt.axvline(x = loop_size_X, color = '#D55E00', ymin = 0.3, ymax = 0.35, linewidth = lw2)
 plt.tight_layout()
 ```
-Done!
+
+Done! But make sure you save your file! 
+
+```
+plt.savefig("U4118_distance_decay.pdf"]), format='pdf', dpi=300)
+```
