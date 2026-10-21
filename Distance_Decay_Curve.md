@@ -98,6 +98,22 @@ view['chrom'] = view['chrom'].map(
 print(view['chrom'].head())
 ```
 
+If they REALLY don't match, do this, otherwise, skip!
+
+```
+chrom_mapping = {
+    'scaffold_1': 'X',
+    'scaffold_2': '5',
+    'scaffold_3': '4',
+    'scaffold_4': '2',
+    'scaffold_5': '1',
+    'scaffold_6': '3',
+    'scaffold_7': 'UNPLACED',
+}
+
+view['chrom'] = view['chrom'].replace(chrom_mapping)
+```
+
 Measure P(s) and its derivative
 
 ```
