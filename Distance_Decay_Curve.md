@@ -83,6 +83,21 @@ def parse_regions_compat(regions, chromsizes):
 bioframe.parse_regions = parse_regions_compat
 ```
 
+Makes cases match
+
+```
+chrom_lookup = {
+    chrom.lower(): chrom
+    for chrom in JU4118_clr.chromnames
+}
+
+view['chrom'] = view['chrom'].map(
+    lambda chrom: chrom_lookup.get(chrom.lower(), chrom)
+)
+
+print(view['chrom'].head())
+```
+
 Measure P(s) and its derivative
 
 ```
