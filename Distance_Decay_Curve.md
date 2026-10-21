@@ -1,4 +1,5 @@
 # Jupyter Instructions
+Edited from https://github.com/ercanlab/2024_Aharonoff_et_al/blob/main/scripts/Hi-C/Figures_3_S8.ipynb
 
 ```
 # import standard python libraries
@@ -39,6 +40,7 @@ df = pd.read_csv('/home/data/jfierst/Karolina/JU4118/YaHS/JU4118_cool.chrom.size
 view = bioframe.make_viewframe(df) # view = bioframe.parse_regions(df)
 print(view)
 
+
 ```
 Define functions to measure P(s) and its derivative (taken from cooltools)
 
@@ -61,4 +63,25 @@ def scaling_agg(input_clr,input_regions):
     lb_slopes_agg['s_bp'] = lb_slopes_agg['diag.avg'] * input_clr.binsize
     return(lb_cvd_agg,lb_slopes_agg)
 ```
+
+Define parse_regions
+
+```
+def parse_regions_compat(regions, chromsizes):
+    if isinstance(regions, pd.DataFrame):
+        result = regions.copy()
+    else:
+        result = pd.DataFrame(
+            [bioframe.parse_region(r, chromsizes) for r in regions],
+            columns=['chrom', 'start', 'end']
+        )
+
+    if 'name' not in result.columns:
+        result['name'] = result['chrom'].astype(str)
+
+    return result[['chrom', 'start', 'end', 'name']]
+
+bioframe.parse_regions = parse_regions_compat
+```
+
 Measure P(s) and its derivative
